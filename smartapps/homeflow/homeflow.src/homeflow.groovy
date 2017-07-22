@@ -26,10 +26,27 @@ definition(
 
 
 preferences {
-	section("Allow homeflow to control these things") {
-        input "Actuator", "capability.actuator", title: "Devices", multiple: true, required: false
-        input "Sensor", "capability.sensor", title: "Sensors", multiple: true, required: false
-	}
+    page(name: "deviceSelectionPage", title: "Device Selection", nextPage: "authorizationPage", uninstall: true) {
+        section("Allow Homeflow to control these devices") {
+            input "lights", "capability.switch", title: "Lights...", multiple: true, required: false
+            // input "Actuator", "capability.actuator", title: "Devices", multiple: true, required: false
+            // input "Sensor", "capability.sensor", title: "Sensors", multiple: true, required: false
+        }
+    }
+
+    page(name: "authorizationPage", title: "Connect your SmartThings account", install: true, uninstall: true)
+}
+
+def authorizationPage() {
+    def accountCode = authAccessToken()
+    dynamicPage(name: "authorizationPage") {
+        section("Get Setup") {
+            paragraph image: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
+                  title: "$accountCode",
+                  required: false,
+                  "Enter this code on your Homeflow dashboard."
+        }
+    }
 }
 
 def installed() {
@@ -45,6 +62,28 @@ def initialize() {
     subscribeToAll()
 }
 
+def authAccessToken() {
+    if (!state.accessToken) {
+        state.accessToken = createAccessToken()
+    }
+    def json = new groovy.json.JsonBuilder([
+        accessToken: state.accessToken,
+        hubId: location.hubs[0].id
+    ])
+    def params = [
+        uri: "http://41f12e5e.ngrok.io/api/auth/smartthings/token",
+        body: json
+    ]
+
+    try {
+        httpPostJson(params) { resp -> 
+            return resp.data.accountCode
+        }
+    } catch (e) {
+      log.error "authAccessToken: $e"
+    }
+}
+
 def subscribeToAll() {
     List<String> attributes = []
 
@@ -57,11 +96,14 @@ def subscribeToAll() {
     }
 
     def allAttributes = attributes.toSet()
-
+    // TODO: sub to events individually: https://github.com/LeBlaaanc/SmartTiles/blob/master/SmartTiles.groovy#L466
     allAttributes.each { attrName ->
-    	subscribe(Actuator, "$attrName", eventHandler)
-        subscribe(Sensor, "$attrName", eventHandler)
+    	subscribe(Actuator, "$attrName", eventHandler, [filterEvents: false])
+        subscribe(Sensor, "$attrName", eventHandler, [filterEvents: false])
     }
+
+    // subscribe(lights, "switch.on", eventHandler)
+	// subscribe(lights, "switch.off", eventHandler)
 }
 
 def getAllDevices() {
@@ -105,16 +147,29 @@ def getAllDevicesAndMassage() {
 def eventHandlerHandler () {
     def devices = getAllDevicesAndMassage()
     def json = groovy.json.JsonOutput.toJson(devices)
-
-    def params = [
-      uri: "http://7fe8afea.ngrok.io/st/update",
-      body: json
+    def data = [
+        devices: json,
+        hubId: location.hubs[0].id
     ]
 
+    def params = [
+      uri: "http://41f12e5e.ngrok.io/api/smartthings/update",
+      body: data
+    ]
+    
+    log.debug "making POST request to server"
+
+    log.info "sending update..."
+    log.info data
+    log.info "========="
+
     try {
-      httpPostJson(params)
+    //   httpPostJson(params)
+        httpPostJson(params) { resp -> 
+            log.debug resp.data
+        }
     } catch (e) {
-      log.error "Ew, something went wrong: $e"
+      log.error "eventHandler: $e"
     }
 }
 
@@ -128,7 +183,8 @@ def getDevice(id) {
 }
 
 def eventHandler(event) {
-    runIn(1, eventHandlerHandler, [overwrite: true])
+    // runIn(1, eventHandlerHandler, [overwrite: true])
+    eventHandlerHandler()
 }
 
 def getDevicesList() {
