@@ -15,7 +15,7 @@
  */
 definition(
     name: "homeflow",
-    namespace: "tituswoo",
+    namespace: "homeflow",
     author: "Titus Woo",
     description: "Simpler automation",
     category: "Convenience",
