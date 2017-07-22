@@ -1,5 +1,5 @@
 /**
- *  homeflow
+ *  dashful
  *
  *  Copyright 2017 Titus Woo
  *
@@ -14,7 +14,7 @@
  *
  */
 definition(
-    name: "homeflow",
+    name: "dashful",
     namespace: "tituswoo",
     author: "Titus Woo",
     description: "Simpler automation",
