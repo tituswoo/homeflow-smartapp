@@ -1,5 +1,5 @@
 /**
- *  dashful
+ *  homeflow
  *
  *  Copyright 2017 Titus Woo
  *
@@ -14,7 +14,7 @@
  *
  */
 definition(
-    name: "dashful",
+    name: "homeflow",
     namespace: "tituswoo",
     author: "Titus Woo",
     description: "Simpler automation",
@@ -26,7 +26,7 @@ definition(
 
 
 preferences {
-	section("Allow dashful to control these things") {
+	section("Allow homeflow to control these things") {
         input "Actuator", "capability.actuator", title: "Devices", multiple: true, required: false
         input "Sensor", "capability.sensor", title: "Sensors", multiple: true, required: false
 	}
