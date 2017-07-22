@@ -1,7 +1,7 @@
 /**
  *  dashful
  *
- *  Copyright 2017 Titus Woo
+ *  Copyright 2017 Homeflow
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  *  in compliance with the License. You may obtain a copy of the License at:
@@ -14,9 +14,9 @@
  *
  */
 definition(
-    name: "dashful",
-    namespace: "tituswoo",
-    author: "Titus Woo",
+    name: "homeflow",
+    namespace: "homeflow",
+    author: "Homeflow",
     description: "Simpler automation",
     category: "Convenience",
     iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
