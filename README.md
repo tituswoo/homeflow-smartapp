@@ -1,24 +1,24 @@
 # Homeflow Installation Instructions
 
-#### Integrate with Github
+### Integrate with Github
 We recommend that you use Github to manage updates and install Homeflow. Github makes getting updates quick and painless.
 
 1. Create an account on Github. Completely free ✨
 2. Log into your SmartThings developer dashboard
 
-#### Enable Github integration
+### Enable Github integration
 1. Click on “My SmartApps” 🤓
 2. Click on “Enable Github Integration”
 3. Follow the next steps to connect your Github account to SmartThings 👾
 
 ![Enable Github integration](assets/enable-github-integration.png)
 
-#### Post Github integration
+### Post Github integration
 1. Click on “Settings” ⚙️
 
 ![Add Github account](assets/add-github-account.png)
 
-#### Add repository
+### Add repository
 1. Click on “Add new repository”
 2. Owner: tituswoo
 3. Name: homeflow-smartapp
@@ -27,7 +27,7 @@ We recommend that you use Github to manage updates and install Homeflow. Github 
 
 ![Github install](assets/github-install.png)
 
-#### Install Homeflow
+### Install Homeflow
 1. Click on “Update from Repo” ⬆️
 2. Click on “homeflow-smartapp (master)”
 
@@ -39,7 +39,7 @@ We recommend that you use Github to manage updates and install Homeflow. Github 
 
 ![Update from repo](assets/update-from-repo-2.png)
 
-#### Enable OAuth
+### Enable OAuth
 Enabling OAuth lets you control your smart devices through Homeflow 🕹
 1. Click on the edit icon next to your SmartApp
 
@@ -51,7 +51,7 @@ Enabling OAuth lets you control your smart devices through Homeflow 🕹
 
 ![Enable OAuth](assets/update-settings.png)
 
-#### Add SmartApp
+### Add SmartApp
 1. In your SmartThings app, at the bottom, click “Automation”
 2. Click on “Add a SmartApp”
 3. Scroll to the bottom of the screen and click “My Apps”
@@ -65,7 +65,7 @@ Enabling OAuth lets you control your smart devices through Homeflow 🕹
 
 ![iOS installation 2](assets/ios-installation-2.png)
 
-#### Connect your SmartThings account
+### Connect your SmartThings account
 1. Enter in the code from your SmartApp to Homeflow
 
 ![Edit account code](assets/enter-account-code.png)
