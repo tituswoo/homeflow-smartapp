@@ -71,7 +71,7 @@ def authAccessToken() {
         hubId: location.hubs[0].id
     ])
     def params = [
-        uri: "http://41f12e5e.ngrok.io/api/auth/smartthings/token",
+        uri: "http://b14363e6.ngrok.io/api/auth/smartthings/token",
         body: json
     ]
 
@@ -153,7 +153,7 @@ def eventHandlerHandler () {
     ]
 
     def params = [
-      uri: "http://41f12e5e.ngrok.io/api/smartthings/update",
+      uri: "http://b14363e6.ngrok.io/api/smartthings/update",
       body: data
     ]
     
