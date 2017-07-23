@@ -1,6 +1,8 @@
 # Homeflow Installation Instructions
 
-### Integrate with Github
+## Integrate Github
+
+### Connect Github to SmartThings
 We recommend that you use Github to manage updates and install Homeflow. Github makes getting updates quick and painless.
 
 1. Create an account on Github. Completely free ✨
@@ -18,7 +20,11 @@ We recommend that you use Github to manage updates and install Homeflow. Github 
 
 ![Add Github account](assets/add-github-account.png)
 
-### Add repository
+-----
+
+## Install Homeflow code
+
+### Add code repository
 1. Click on “Add new repository”
 2. Owner: tituswoo
 3. Name: homeflow-smartapp
@@ -27,7 +33,7 @@ We recommend that you use Github to manage updates and install Homeflow. Github 
 
 ![Github install](assets/github-install.png)
 
-### Install Homeflow
+### Update from repo
 1. Click on “Update from Repo” ⬆️
 2. Click on “homeflow-smartapp (master)”
 
@@ -38,6 +44,10 @@ We recommend that you use Github to manage updates and install Homeflow. Github 
 5. Click on “Execute Update” 👌
 
 ![Update from repo](assets/update-from-repo-2.png)
+
+-----
+
+## Setup OAuth
 
 ### Enable OAuth
 Enabling OAuth lets you control your smart devices through Homeflow 🕹
@@ -50,6 +60,10 @@ Enabling OAuth lets you control your smart devices through Homeflow 🕹
 3. When the OAuth panel expands to reveal Client ID and Client Secret fields, scroll to the bottom of the page and click “Update” ⚡️
 
 ![Enable OAuth](assets/update-settings.png)
+
+-----
+
+## Install Homeflow in the SmartThings app
 
 ### Add SmartApp
 1. In your SmartThings app, at the bottom, click “Automation”
@@ -65,7 +79,11 @@ Enabling OAuth lets you control your smart devices through Homeflow 🕹
 
 ![iOS installation 2](assets/ios-installation-2.png)
 
-### Connect your SmartThings account
+-----
+
+## connect your SmartThings account
+
+### Connect
 1. Enter in the code from your SmartApp to Homeflow
 
 ![Edit account code](assets/enter-account-code.png)
