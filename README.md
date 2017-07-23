@@ -31,13 +31,13 @@ We recommend that you use Github to manage updates and install Homeflow. Github 
 1. Click on “Update from Repo” ⬆️
 2. Click on “homeflow-smartapp (master)”
 
-![Update from repo](assets/update-from-repo.png)
+![Update from repo](assets/update-from-repo-1.png)
 
 3. Click on the checkbox beside “smartapps/homeflow/homeflow.src/homeflow.groovy” ✅
 4. Click on the checkbox beside “Publish” (don’t forget this step) ✅
 5. Click on “Execute Update” 👌
 
-![Install from code](assets/install-from-code.png)
+![Update from repo](assets/update-from-repo-2.png)
 
 #### Enable OAuth
 Enabling OAuth lets you control your smart devices through Homeflow 🕹
