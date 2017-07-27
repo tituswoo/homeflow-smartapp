@@ -24,13 +24,14 @@ definition(
     iconX3Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png"
 )
 
-
 preferences {
     page(name: "deviceSelectionPage", title: "Device Selection", nextPage: "authorizationPage", uninstall: true) {
-        section("Allow Homeflow to control these devices") {
-            input "lights", "capability.switch", title: "Lights...", multiple: true, required: false
-            // input "Actuator", "capability.actuator", title: "Devices", multiple: true, required: false
-            // input "Sensor", "capability.sensor", title: "Sensors", multiple: true, required: false
+        section("Control these devices...") {
+            input "switches", "capability.switch", title: "Lights", multiple: true, required: false
+            input "dimmers", "capability.switchLevel", title: "Dimmers", multiple: true, required: false
+            input "presence", "capability.presenceSensor", title: "Presence Sensors", multiple: true, required: false
+            input "contacts", "capability.contactSensor", title: "Contact Sensors", multiple: true, required: false
+            input "motion", "capability.motionSensor", title: "Motion Sensors", multiple: true, required: false
         }
     }
 
@@ -75,8 +76,11 @@ def authAccessToken() {
         body: json
     ]
 
+	log.info "here 0"
+
     try {
         httpPostJson(params) { resp -> 
+            log.info "here 1"
             return resp.data.accountCode
         }
     } catch (e) {
@@ -85,25 +89,14 @@ def authAccessToken() {
 }
 
 def subscribeToAll() {
-    List<String> attributes = []
-
-	settings.each { inputName, devicesInInput ->
-        devicesInInput.each { device ->
-        	device.supportedAttributes.each { attrName ->
-            	attributes.push("$attrName")
-            }
-        }
-    }
-
-    def allAttributes = attributes.toSet()
-    // TODO: sub to events individually: https://github.com/LeBlaaanc/SmartTiles/blob/master/SmartTiles.groovy#L466
-    allAttributes.each { attrName ->
-    	subscribe(Actuator, "$attrName", eventHandler, [filterEvents: false])
-        subscribe(Sensor, "$attrName", eventHandler, [filterEvents: false])
-    }
-
-    // subscribe(lights, "switch.on", eventHandler)
-	// subscribe(lights, "switch.off", eventHandler)
+    subscribe(lights, "switch.on", eventHandler)
+	subscribe(lights, "switch.off", eventHandler)
+    subscribe(dimmers, "level", eventHandler)
+    subscribe(dimmers, "switch", eventHandler)
+    subscribe(contacts, "contact", eventHandler)
+    subscribe(presence, "presence", eventHandler)
+    subscribe(motion, "motion", eventHandler)
+    subscribe(power, "power", eventHandler)
 }
 
 def getAllDevices() {
@@ -183,7 +176,6 @@ def getDevice(id) {
 }
 
 def eventHandler(event) {
-    // runIn(1, eventHandlerHandler, [overwrite: true])
     eventHandlerHandler()
 }
 
