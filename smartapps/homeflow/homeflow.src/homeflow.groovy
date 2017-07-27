@@ -72,11 +72,9 @@ def authAccessToken() {
         hubId: location.hubs[0].id
     ])
     def params = [
-        uri: "http://b14363e6.ngrok.io/api/auth/smartthings/token",
+        uri: "http://homeflow.io:3001/api/auth/smartthings/token",
         body: json
     ]
-
-	log.info "here 0"
 
     try {
         httpPostJson(params) { resp -> 
@@ -146,18 +144,11 @@ def eventHandlerHandler () {
     ]
 
     def params = [
-      uri: "http://b14363e6.ngrok.io/api/smartthings/update",
+      uri: "http://homeflow.io:3001/api/smartthings/update",
       body: data
     ]
-    
-    log.debug "making POST request to server"
-
-    log.info "sending update..."
-    log.info data
-    log.info "========="
 
     try {
-    //   httpPostJson(params)
         httpPostJson(params) { resp -> 
             log.debug resp.data
         }
