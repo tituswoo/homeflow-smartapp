@@ -28,6 +28,7 @@ preferences {
     page(name: "deviceSelectionPage", title: "Device Selection", nextPage: "authorizationPage", uninstall: true) {
         section("Control these devices...") {
             input "switches", "capability.switch", title: "Lights", multiple: true, required: false
+            input "colors", "capability.colorControl", title: "Color Controllers", multiple: true, required: false
             input "dimmers", "capability.switchLevel", title: "Dimmers", multiple: true, required: false
             input "presence", "capability.presenceSensor", title: "Presence Sensors", multiple: true, required: false
             input "contacts", "capability.contactSensor", title: "Contact Sensors", multiple: true, required: false
@@ -78,7 +79,6 @@ def authAccessToken() {
 
     try {
         httpPostJson(params) { resp -> 
-            log.info "here 1"
             return resp.data.accountCode
         }
     } catch (e) {
@@ -87,8 +87,8 @@ def authAccessToken() {
 }
 
 def subscribeToAll() {
-    subscribe(lights, "switch.on", eventHandler)
-	subscribe(lights, "switch.off", eventHandler)
+    subscribe(switches, "switch.on", eventHandler)
+	subscribe(switches, "switch.off", eventHandler)
     subscribe(dimmers, "level", eventHandler)
     subscribe(dimmers, "switch", eventHandler)
     subscribe(contacts, "contact", eventHandler)
