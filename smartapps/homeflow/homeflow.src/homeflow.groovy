@@ -161,8 +161,6 @@ def getAllDevicesAndMassage() {
 }
 
 def eventHandlerHandler () {
-	log.debug settings
-
     def devices = getAllDevicesAndMassage()
     def json = groovy.json.JsonOutput.toJson(devices)
     def data = [
