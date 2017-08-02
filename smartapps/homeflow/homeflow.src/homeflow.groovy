@@ -24,6 +24,8 @@ definition(
     iconX3Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png"
 )
 
+def httpEndpoint() { "http://homeflow.io:3001" }
+
 preferences {
     page(name: "deviceSelectionPage", title: "Device Selection", nextPage: "authorizationPage", uninstall: true) {
         section("Control these devices...") {
@@ -64,17 +66,40 @@ def initialize() {
     subscribeToAll()
 }
 
+def uninstalled() {
+    handleUninstall()
+}
+
+def handleUninstall() {
+    def payload = new groovy.json.JsonBuilder([
+        hubId: location.hubs[0].id,
+    ])
+
+    def params = [
+        uri: "${httpEndpoint()}/api/smartthings/uninstall",
+        body: payload
+    ]
+    try {
+        httpPostJson(params) { resp -> 
+            return resp.data.accountCode
+        }
+    } catch (e) {
+    
+    }
+}
+
 def authAccessToken() {
     if (!state.accessToken) {
         state.accessToken = createAccessToken()
     }
-    def json = new groovy.json.JsonBuilder([
+    def payload = new groovy.json.JsonBuilder([
         accessToken: state.accessToken,
-        hubId: location.hubs[0].id
+        hubId: location.hubs[0].id,
+        appId: app.id,
     ])
     def params = [
-        uri: "http://homeflow.io:3001/api/auth/smartthings/token",
-        body: json
+        uri: "${httpEndpoint()}/api/auth/smartthings/token",
+        body: payload,
     ]
 
     try {
@@ -136,6 +161,8 @@ def getAllDevicesAndMassage() {
 }
 
 def eventHandlerHandler () {
+	log.debug settings
+
     def devices = getAllDevicesAndMassage()
     def json = groovy.json.JsonOutput.toJson(devices)
     def data = [
@@ -144,7 +171,7 @@ def eventHandlerHandler () {
     ]
 
     def params = [
-      uri: "http://homeflow.io:3001/api/smartthings/update",
+      uri: "${httpEndpoint()}/api/smartthings/update",
       body: data
     ]
 
