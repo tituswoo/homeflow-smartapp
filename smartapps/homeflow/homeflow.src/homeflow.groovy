@@ -2,7 +2,7 @@ import groovy.transform.Field
 import groovy.json.*
 
 /**
- *  homeflow
+ *  homeflow 1.0.0
  *
  *  Copyright 2017 Titus Woo
  *
@@ -32,20 +32,9 @@ definition(
 preferences {
     page(name: "deviceSelectionPage", title: "Device Selection", nextPage: "authorizationPage", uninstall: true) {
         section("Control these devices...") {
-            input "switches", "capability.switch", title: "Lights", multiple: true, required: false
-            input "colors", "capability.colorControl", title: "Color Controllers", multiple: true, required: false
-            input "dimmers", "capability.switchLevel", title: "Dimmers", multiple: true, required: false
-            input "presence", "capability.presenceSensor", title: "Presence Sensors", multiple: true, required: false
-            input "contacts", "capability.contactSensor", title: "Contact Sensors", multiple: true, required: false
-            input "motion", "capability.motionSensor", title: "Motion Sensors", multiple: true, required: false
+            input "Actuator", "capability.actuator", multiple: true, title: "Which actuators", required: false
+			input "Sensor", "capability.sensor", multiple: true, title: "Which sensors", required: false
         }
-
-        section ("Control these devices...") {
-            CAPABILITY_MAP.each { key, deviceType ->
-                // input "alarm", "capability.alarm", title: "Alarm"
-                input key, deviceType["capability"], title: deviceType["name"], multiple: true, required: false
-            }
-        } 
     }
 
     page(name: "authorizationPage", title: "Connect your SmartThings account", install: true, uninstall: true)
@@ -106,80 +95,62 @@ def getAccountCode() {
 
 def subscribeAll() {
     log.debug("Subscribing to devices...")
-    CAPABILITY_MAP.each { key, deviceType ->
-        deviceType["attributes"].each { attribute ->
-            subscribe(settings[key], attribute, eventHandler)
+    log.debug location.hubs[0].id
+
+    def attributes = []
+
+	settings.each { key, devicesInInput ->
+        devicesInInput.each { device ->
+        	device.supportedAttributes.each { attribute ->
+            	attributes.push(attribute.getName())
+            }
         }
+    }
+    
+    attributes.each { attribute ->
+    	subscribe(Actuator, attribute, eventHandler)
+        subscribe(Sensor, attribute, eventHandler)
     }
 
     getDevices()
-    // subscribe(switches, "switch.on", eventHandler)
-	// subscribe(switches, "switch.off", eventHandler)
-    // subscribe(dimmers, "level", eventHandler)
-    // subscribe(dimmers, "switch", eventHandler)
-    // subscribe(contacts, "contact", eventHandler)
-    // subscribe(presence, "presence", eventHandler)
-    // subscribe(motion, "motion", eventHandler)
-    // subscribe(power, "power", eventHandler)
 }
 
 def getDevices() {
     log.debug "getDevices: getting devices"
 	def devices = []
 
-     CAPABILITY_MAP.each { key, deviceType ->
-        settings[key].each { device ->
-            def deviceObject = [:]
+    // TODO: refactor nesting
+    settings.each { key, devicesInInput ->
+        devicesInInput.each { device ->
+            // each capability represents a device
+            device.capabilities.each { capability ->
+                def subDevice = [:]
+                def formattedCapabilityName = toCamelCase(capability.name)
 
-            deviceObject.name = device.name
-            deviceObject.id = device.id
-            deviceObject.label = device.label
-            deviceObject.displayName = device.displayName
-            deviceObject.capability = key
-            deviceObject.deviceData = [:]
-            deviceType.attributes.each { attribute -> 
-                def currentAttributeName = "current${attribute.capitalize()}"
-                deviceObject.deviceData[attribute] = device[currentAttributeName]
+                subDevice.name = device.name
+                subDevice.id = "${device.id}_${trimmedCapabilityName}"
+                subDevice.displayName = device.displayName
+                subDevice.capability = formattedCapabilityName
+                subDevice.deviceData = []
+                
+                // capability exists in capability map (blacklist: health check + sensor)
+                if (CAPABILITY_MAP[formattedCapabilityName]) {
+                    CAPABILITY_MAP[formattedCapabilityName].attributes.each { attribute -> 
+                        def attributeObject = [:]
+                        def currentAttributeName = "current${attribute.capitalize()}"
+
+                        attributeObject[attribute] = device[currentAttributeName]
+                        subDevice.deviceData.push(attributeObject)
+                    }
+                    devices.push(subDevice)
+                }
             }
-
-            // TODO: depracate
-            deviceObject.capabilities = device.capabilities.collect { c -> c.name }
-
-            devices.push(deviceObject)
         }
     }
+
+    log.debug devices
 
 	return devices
-}
-
-// TODO: REMOVE
-def getDevicesAndFormat() {
-    log.debug "getDevicesAndFormat: getting devices and formatting"
-    def devices = getDevices()
-    def devicesList = []
-
-    devices.each { device ->
-        log.debug "getDevicesAndFormat: device – $device"
-
-        def deviceObject = [:]
-
-        deviceObject.name = device.name
-        deviceObject.id = device.id
-        deviceObject.label = device.label
-        deviceObject.displayName = device.displayName
-        deviceObject.capabilities = device.capabilities.collect { c -> c.name }
-
-        device.supportedAttributes.each { attribute ->
-            def currentAttributeName = "current${attribute.name.capitalize()}"
-            deviceObject["$attribute.name"] = device["$currentAttributeName"]
-        }
-
-        if (!devicesList.findAll { it.id == device.id }) {
-            devicesList.push(deviceObject)
-        }
-    }
-
-    return devicesList
 }
 
 def getDevice(id) {
@@ -192,6 +163,7 @@ def getDevice(id) {
 }
 
 def eventHandler() {
+    log.debug "eventHandler: event fired"
     def devices = getDevices()
     def devicesJSON = groovy.json.JsonOutput.toJson(devices)
     def data = [
@@ -271,6 +243,11 @@ def fetch(path, payload) {
     }
 }
 
+def toCamelCase(str) {
+    def strWithNoSpaces = str.replaceAll("\\s","")
+    return strWithNoSpaces[0].toLowerCase() + strWithNoSpaces.substring(1)
+}
+
 mappings {
 	path("/devices") {
     	action: [
@@ -286,7 +263,7 @@ mappings {
 
 // device lookup tree
 @Field CAPABILITY_MAP = [
-    "accelerationSensors": [
+    "accelerationSensor": [
         name: "Acceleration Sensor",
         capability: "capability.accelerationSensor",
         attributes: [
@@ -384,7 +361,7 @@ mappings {
             "energy"
         ]
     ],
-    "garageDoors": [
+    "garageDoor": [
         name: "Garage Door Control",
         capability: "capability.garageDoorControl",
         attributes: [
@@ -406,7 +383,7 @@ mappings {
             "image"
         ]
     ],
-    "levels": [
+    "level": [
         name: "Switch Level",
         capability: "capability.switchLevel",
         attributes: [
@@ -430,7 +407,7 @@ mappings {
             "currentActivity"
         ]
     ],
-    "motionSensors": [
+    "motionSensor": [
         name: "Motion Sensor",
         capability: "capability.motionSensor",
         attributes: [
@@ -530,7 +507,7 @@ mappings {
             "goal"
         ]
     ],
-    "switches": [
+    "switch": [
         name: "Switch",
         capability: "capability.switch",
         attributes: [
@@ -552,7 +529,7 @@ mappings {
             "tamper"
         ]
     ],
-    "temperatureSensors": [
+    "temperatureSensor": [
         name: "Temperature Measurement",
         capability: "capability.temperatureMeasurement",
         attributes: [
@@ -657,14 +634,14 @@ mappings {
             "voltage"
         ]
     ],
-    "waterSensors": [
+    "waterSensor": [
         name: "Water Sensor",
         capability: "capability.waterSensor",
         attributes: [
             "water"
         ]
     ],
-    "windowShades": [
+    "windowShade": [
         name: "Window Shade",
         capability: "capability.windowShade",
         attributes: [
