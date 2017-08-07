@@ -70,7 +70,8 @@ def authAccessToken() {
     }
     def json = new groovy.json.JsonBuilder([
         accessToken: state.accessToken,
-        hubId: location.hubs[0].id
+        hubId: location.hubs[0].id,
+	appId: app.id,
     ])
     def params = [
         uri: "http://homeflow.io:3001/api/auth/smartthings/token",
