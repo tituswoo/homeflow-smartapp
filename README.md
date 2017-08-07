@@ -73,7 +73,7 @@ Enabling OAuth lets you control your smart devices through Homeflow 🕹
 
 ### Add SmartApp
 1. In your SmartThings app, at the bottom, click “Automation”
-2. Click on “Add a SmartApp”
+2. Click on “Add a SmartApp” under the "SmartApps" section
 3. Scroll to the bottom of the screen and click “My Apps”
 4. Select “homeflow”
 
