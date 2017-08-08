@@ -35,6 +35,12 @@ preferences {
             input "Actuator", "capability.actuator", multiple: true, title: "Which actuators", required: false
 			input "Sensor", "capability.sensor", multiple: true, title: "Which sensors", required: false
         }
+
+        section ("Input") {
+            CAPABILITY_MAP.each { key, capability ->
+                input key, capability["capability"], title: capability["name"], multiple: true, required: false
+            }
+        }
     }
 
     page(name: "authorizationPage", title: "Connect your SmartThings account", install: true, uninstall: true)
@@ -111,8 +117,6 @@ def subscribeAll() {
     	subscribe(Actuator, attribute, eventHandler)
         subscribe(Sensor, attribute, eventHandler)
     }
-
-    getDevices()
 }
 
 def getDevices() {
@@ -128,19 +132,16 @@ def getDevices() {
                 def formattedCapabilityName = toCamelCase(capability.name)
 
                 subDevice.name = device.name
-                subDevice.id = "${device.id}_${trimmedCapabilityName}"
+                subDevice.id = "${device.id}_${formattedCapabilityName}"
                 subDevice.displayName = device.displayName
                 subDevice.capability = formattedCapabilityName
-                subDevice.deviceData = []
+                subDevice.deviceData = [:]
                 
-                // capability exists in capability map (blacklist: health check + sensor)
+                // capability exists in capability map (blacklist: healthCheck, sensor, threeAxis)
                 if (CAPABILITY_MAP[formattedCapabilityName]) {
                     CAPABILITY_MAP[formattedCapabilityName].attributes.each { attribute -> 
-                        def attributeObject = [:]
                         def currentAttributeName = "current${attribute.capitalize()}"
-
-                        attributeObject[attribute] = device[currentAttributeName]
-                        subDevice.deviceData.push(attributeObject)
+                        subDevice.deviceData[attribute] = device[currentAttributeName]
                     }
                     devices.push(subDevice)
                 }
@@ -339,7 +340,7 @@ mappings {
         ],
         action: "actionConsumable"
     ],
-    "contactSensors": [
+    "contactSensor": [
         name: "Contact Sensor",
         capability: "capability.contactSensor",
         attributes: [
@@ -374,13 +375,6 @@ mappings {
         capability: "capability.illuminanceMeasurement",
         attributes: [
             "illuminance"
-        ]
-    ],
-    "imageCapture": [
-        name: "Image Capture",
-        capability: "capability.imageCapture",
-        attributes: [
-            "image"
         ]
     ],
     "level": [
@@ -434,14 +428,14 @@ mappings {
             "pH"
         ]
     ],
-    "powerMeters": [
+    "powerMeter": [
         name: "Power Meter",
         capability: "capability.powerMeter",
         attributes: [
             "power"
         ]
     ],
-    "presenceSensors": [
+    "presenceSensor": [
         name: "Presence Sensor",
         capability: "capability.presenceSensor",
         attributes: [
@@ -455,27 +449,11 @@ mappings {
             "humidity"
         ]
     ],
-    "relaySwitch": [
-        name: "Relay Switch",
-        capability: "capability.relaySwitch",
-        attributes: [
-            "switch"
-        ],
-        action: "actionOnOff"
-    ],
     "shockSensor": [
         name: "Shock Sensor",
         capability: "capability.shockSensor",
         attributes: [
             "shock"
-        ]
-    ],
-    "signalStrength": [
-        name: "Signal Strength",
-        capability: "capability.signalStrength",
-        attributes: [
-            "lqi",
-            "rssi"
         ]
     ],
     "sleepSensor": [
@@ -497,14 +475,6 @@ mappings {
         capability: "capability.soundSensor",
         attributes: [
             "sound"
-        ]
-    ],
-    "stepSensor": [
-        name: "Step Sensor",
-        capability: "capability.stepSensor",
-        attributes: [
-            "steps",
-            "goal"
         ]
     ],
     "switch": [
@@ -529,7 +499,7 @@ mappings {
             "tamper"
         ]
     ],
-    "temperatureSensor": [
+    "temperatureMeasurement": [
         name: "Temperature Measurement",
         capability: "capability.temperatureMeasurement",
         attributes: [
@@ -596,13 +566,6 @@ mappings {
             "thermostatSetpoint"
         ]
     ],
-    "threeAxis": [
-        name: "Three Axis",
-        capability: "capability.threeAxis",
-        attributes: [
-            "threeAxis"
-        ]
-    ],
     "timedSession": [
         name: "Timed Session",
         capability: "capability.timedSession",
@@ -648,5 +611,189 @@ mappings {
             "windowShade"
         ],
         action: "actionOpenClosed"
-    ]
+    ],
+    // "relaySwitch": [
+    //     name: "Relay Switch",
+    //     capability: "capability.relaySwitch",
+    //     attributes: [
+    //         "switch"
+    //     ],
+    //     action: "actionOnOff"
+    // ],
+    // "imageCapture": [
+    //     name: "Image Capture",
+    //     capability: "capability.imageCapture",
+    //     attributes: [
+    //         "image"
+    //     ]
+    // ],
+    // "signalStrength": [
+    //     name: "Signal Strength",
+    //     capability: "capability.signalStrength",
+    //     attributes: [
+    //         "lqi",
+    //         "rssi"
+    //     ]
+    // ],
+    // TODO: custom
+    // "stepSensor": [
+    //     name: "Step Sensor",
+    //     capability: "capability.stepSensor",
+    //     attributes: [
+    //         "steps",
+    //         "goal"
+    //     ]
+    // ],
+    // "threeAxis": [
+    //     name: "Three Axis",
+    //     capability: "capability.threeAxis",
+    //     attributes: [
+    //         "threeAxis"
+    //     ]
+    // ],
 ]
+
+def actionAlarm(device, attribute, value) {
+    switch (value) {
+        case "strobe":
+            device.strobe()
+        break
+        case "siren":
+            device.siren()
+        break
+        case "off":
+            device.off()
+        break
+        case "both":
+            device.both()
+        break
+    }
+}
+
+def actionColor(device, attribute, value) {
+    switch (attribute) {
+        case "hue":
+            device.setHue(value as float)
+        break
+        case "saturation":
+            device.setSaturation(value as float)
+        break
+        case "color":
+            def values = value.split(',')
+            def colormap = ["hue": values[0] as float, "saturation": values[1] as float]
+            device.setColor(colormap)
+        break
+    }
+}
+
+def actionOpenClosed(device, attribute, value) {
+    if (value == "open") {
+        device.open()
+    } else if (value == "closed") {
+        device.close()
+    }
+}
+
+def actionOnOff(device, attribute, value) {
+    if (value == "off") {
+        device.off()
+    } else if (value == "on") {
+        device.on()
+    }
+}
+
+def actionActiveInactive(device, attribute, value) {
+    if (value == "active") {
+        device.active()
+    } else if (value == "inactive") {
+        device.inactive()
+    }
+}
+
+def actionThermostat(device, attribute, value) {
+    switch(attribute) {
+        case "heatingSetpoint":
+            device.setHeatingSetpoint(value)
+        break
+        case "coolingSetpoint":
+            device.setCoolingSetpoint(value)
+        break
+        case "thermostatMode":
+            device.setThermostatMode(value)
+        break
+        case "thermostatFanMode":
+            device.setThermostatFanMode(value)
+        break
+    }
+}
+
+def actionMusicPlayer(device, attribute, value) {
+    switch(attribute) {
+        case "level":
+            device.setLevel(value)
+        break
+        case "mute":
+            if (value == "muted") {
+                device.mute()
+            } else if (value == "unmuted") {
+                device.unmute()
+            }
+        break
+        case "status":
+            if (device.getSupportedCommands().any {it.name == "setStatus"}) {
+                device.setStatus(value)
+            }
+        break
+    }
+}
+
+def actionColorTemperature(device, attribute, value) {
+    device.setColorTemperature(value as int)
+}
+
+def actionLevel(device, attribute, value) {
+    device.setLevel(value as int)
+}
+
+def actionPresence(device, attribute, value) {
+    if (value == "present") {
+    	device.arrived();
+    }
+    else if (value == "not present") {
+    	device.departed();
+    }
+}
+
+def actionConsumable(device, attribute, value) {
+    device.setConsumableStatus(value)
+}
+
+def actionLock(device, attribute, value) {
+    if (value == "locked") {
+        device.lock()
+    } else if (value == "unlocked") {
+        device.unlock()
+    }
+}
+
+def actionCoolingThermostat(device, attribute, value) {
+    device.setCoolingSetpoint(value)
+}
+
+def actionThermostatFan(device, attribute, value) {
+    device.setThermostatFanMode(value)
+}
+
+def actionHeatingThermostat(device, attribute, value) {
+    device.setHeatingSetpoint(value)
+}
+
+def actionThermostatMode(device, attribute, value) {
+    device.setThermostatMode(value)
+}
+
+def actionTimedSession(device, attribute, value) {
+    if (attribute == "timeRemaining") {
+        device.setTimeRemaining(value)
+    }
+}
