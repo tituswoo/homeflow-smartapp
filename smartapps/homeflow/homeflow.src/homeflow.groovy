@@ -107,6 +107,7 @@
 
         settings.each { key, devicesInInput ->
             devicesInInput.each { device ->
+                log.debug "name: $device.name"
                 device.supportedAttributes.each { attribute ->
                     attributes.push(attribute.getName())
                 }
@@ -126,27 +127,28 @@
 
         // TODO: refactor nesting
         devices.each { device ->
+            def deviceObject = [:]
+            deviceObject.id = device.id
+            deviceObject.name = device.name
+            deviceObject.displayName = device.displayName
+            deviceObject.capabilities = []
+            deviceObject.deviceData = [:]
+
             // each capability represents a device
             device.capabilities.each { capability ->
-                def subDevice = [:]
                 def formattedCapabilityName = toCamelCase(capability.name)
-
-                subDevice.name = device.name
-                subDevice.id = "${device.id}_${formattedCapabilityName}"
-                subDevice.deviceId = device.id
-                subDevice.displayName = device.displayName
-                subDevice.capability = formattedCapabilityName
-                subDevice.deviceData = [:]
                 
                 // capability exists in capability map (blacklist: healthCheck, sensor, threeAxis)
                 if (CAPABILITY_MAP[formattedCapabilityName]) {
+                    deviceObject.capabilities.push(formattedCapabilityName)
                     CAPABILITY_MAP[formattedCapabilityName].attributes.each { attribute -> 
                         def currentAttributeName = "current${attribute.capitalize()}"
-                        subDevice.deviceData[attribute] = device[currentAttributeName]
+                        deviceObject.deviceData[attribute] = device[currentAttributeName]
                     }
-                    deviceList.push(subDevice)
                 }
             }
+
+            deviceList.push(deviceObject)
         }
 
         return deviceList
@@ -173,8 +175,8 @@
         return device
     }
 
-    def eventHandler() {
-        log.debug "eventHandler: event occurred"
+    def eventHandler(event) {
+        log.debug "eventHandler: event occurred ${event.name} – ${event.value}"
         def devices = getFormattedDevices()
         def devicesJSON = groovy.json.JsonOutput.toJson(devices)
         def data = [
@@ -183,20 +185,19 @@
         ]
 
         def params = [
-        uri: "$httpEndpoint/api/smartthings/update",
-        body: data
+            uri: "$httpEndpoint/api/smartthings/update",
+            body: data
         ]
 
         try {
-            httpPostJson(params) { resp -> 
-                log.debug resp.data
-            }
+            httpPostJson(params)
         } catch (e) {
         log.error "eventHandler: $e"
         }
     }
 
     def getDevicesList() {
+        log.debug "getDevicesList: fetching devices"
         def devices = getFormattedDevices()
         def devicesJSON = groovy.json.JsonOutput.toJson(devices)
         render data: devicesJSON, status: 200
@@ -204,8 +205,6 @@
 
     def updateDevice() {
         log.debug "updateDevice: updating device"
-        log.debug request.JSON
-        log.debug params
 
         def deviceId = params.deviceId
         def capability = request.JSON?.capability
@@ -217,41 +216,9 @@
         }
 
         def device = getDevice(deviceId)
-
         def action = CAPABILITY_MAP[capability].action
 
         "$action"(device, attribute, value)
-
-        // log.debug request.JSON
-        // def deviceId = params.id
-        // def command = request.JSON?.command
-
-
-
-        // def device = getDevice(deviceId)
-
-        // if (!device) {
-        // 	httpError(500, "Could not find device with id ${deviceId}")
-        // }
-
-        // try {
-        //   switch (command) {
-        //     case "setLevel":
-        //       def level = request.JSON?.level
-        //       device.on()
-        //       device.setLevel(level)
-        //       break
-        //     case "setHue":
-        //       def hue = request.JSON?.hue
-        //       device.on()
-        //       device.setHue(hue)
-        //       break
-        //     default:
-        //       device."$command"()
-        //   }
-        // } catch (e) {
-        // 	httpError(500, "Could not execute command '${command}' to device with id ${deviceId}")
-        // }
     }
 
     // HELPERS
@@ -405,7 +372,7 @@
                 "illuminance"
             ]
         ],
-        "level": [
+        "switchLevel": [
             name: "Switch Level",
             capability: "capability.switchLevel",
             attributes: [
