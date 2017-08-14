@@ -177,21 +177,12 @@
         log.debug "eventHandler: event occurred ${event.name} – ${event.value}"
         def devices = getFormattedDevices()
         def devicesJSON = groovy.json.JsonOutput.toJson(devices)
-        def data = [
+        def payload = [
             devices: devicesJSON,
             hubId: location.hubs[0].id
         ]
 
-        def params = [
-            uri: "$httpEndpoint/api/smartthings/update",
-            body: data
-        ]
-
-        try {
-            httpPostJson(params)
-        } catch (e) {
-            log.error "eventHandler: $e"
-        }
+        fetch("smartthings/update", payload)
     }
 
     def getDevicesList() {
@@ -207,7 +198,7 @@
         def attribute = request.JSON?.attribute
         def value = request.JSON?.value
 
-        log.debug "updateDevice: updating device with... capability – $capability, attribute – $attribute, value – $value"
+        log.debug "updateDevice: updating device with... { capability – $capability, attribute – $attribute, value – $value }"
 
         if (!deviceId) {
         	httpError(400, "deviceId parameter is required.")
@@ -643,6 +634,7 @@
             ],
             action: "actionOpenClosed"
         ],
+        // TODO: custom
         // "relaySwitch": [
         //     name: "Relay Switch",
         //     capability: "capability.relaySwitch",
@@ -666,7 +658,6 @@
         //         "rssi"
         //     ]
         // ],
-        // TODO: custom
         // "threeAxis": [
         //     name: "Three Axis",
         //     capability: "capability.threeAxis",
