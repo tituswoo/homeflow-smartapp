@@ -1,21 +1,31 @@
-    import groovy.transform.Field
-    import groovy.json.*
+import groovy.transform.Field
+import groovy.json.*
 
-    /**
-    *  homeflow 1.0.0
-    *
-    *  Copyright 2017 Homeflow
-    *
-    *  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
-    *  in compliance with the License. You may obtain a copy of the License at:
-    *
-    *      http://www.apache.org/licenses/LICENSE-2.0
-    *
-    *  Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
-    *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
-    *  for the specific language governing permissions and limitations under the License.
-    *
-    */
+/**
+*
+*  Homeflow 1.0.0
+*
+*  Copyright 2017 Homeflow
+*
+*  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+*  in compliance with the License. You may obtain a copy of the License at:
+*
+*  http://www.apache.org/licenses/LICENSE-2.0
+*
+*  Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
+*  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
+*  for the specific language governing permissions and limitations under the License.
+*
+*  Version History
+*
+*/
+
+public static String version() { return "v1.0.0" }
+
+/*
+ *	08/15/2017: v1.0.0 – ALPHA – Initial release
+ */
+
     definition(
         name: "homeflow",
         namespace: "homeflow",
@@ -34,12 +44,6 @@
             section("Control these devices...") {
                 input "Actuator", "capability.actuator", multiple: true, title: "Which actuators (duplicates OK)", required: false
                 input "Sensor", "capability.sensor", multiple: true, title: "Which sensors (duplicates OK)", required: false
-            }
-
-            section ("Input") {
-                CAPABILITY_MAP.each { key, capability ->
-                    input key, capability["capability"], title: capability["name"], multiple: true, required: false
-                }
             }
         }
 
