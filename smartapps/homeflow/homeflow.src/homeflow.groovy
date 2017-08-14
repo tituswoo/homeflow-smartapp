@@ -4,7 +4,7 @@
     /**
     *  homeflow 1.0.0
     *
-    *  Copyright 2017 Titus Woo
+    *  Copyright 2017 Homeflow
     *
     *  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
     *  in compliance with the License. You may obtain a copy of the License at:
@@ -17,9 +17,9 @@
     *
     */
     definition(
-        name: "homeflow-alpha",
+        name: "homeflow",
         namespace: "homeflow",
-        author: "Titus Woo",
+        author: "Homeflow",
         description: "Simpler automation",
         category: "Convenience",
         iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
@@ -27,7 +27,7 @@
         iconX3Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png"
     )
 
-    @Field String httpEndpoint = "http://d7231358.ngrok.io"
+    @Field String httpEndpoint = "http://homeflow.io:3001"
 
     preferences {
         page(name: "deviceSelectionPage", title: "Device Selection", nextPage: "authorizationPage", uninstall: true) {
@@ -82,7 +82,7 @@
             hubId: location.hubs[0].id,
         ])
 
-    fetch("smartthings/uninstall", payload)
+        fetch("smartthings/uninstall", payload)
     }
 
     def getAccountCode() {
@@ -107,7 +107,6 @@
 
         settings.each { key, devicesInInput ->
             devicesInInput.each { device ->
-                log.debug "name: $device.name"
                 device.supportedAttributes.each { attribute ->
                     attributes.push(attribute.getName())
                 }
@@ -125,7 +124,6 @@
         def devices = getDevices()
         def deviceList = []
 
-        // TODO: refactor nesting
         devices.each { device ->
             def deviceObject = [:]
             deviceObject.id = device.id
@@ -192,7 +190,7 @@
         try {
             httpPostJson(params)
         } catch (e) {
-        log.error "eventHandler: $e"
+            log.error "eventHandler: $e"
         }
     }
 
@@ -204,12 +202,12 @@
     }
 
     def updateDevice() {
-        log.debug "updateDevice: updating device"
-
         def deviceId = params.deviceId
         def capability = request.JSON?.capability
         def attribute = request.JSON?.attribute
         def value = request.JSON?.value
+
+        log.debug "updateDevice: updating device with... capability – $capability, attribute – $attribute, value – $value"
 
         if (!deviceId) {
         	httpError(400, "deviceId parameter is required.")
@@ -230,7 +228,7 @@
 
         log.debug("Sending POST: ${params}")
 
-        try {
+        try { 
             httpPostJson(params) { resp -> 
                 return resp.data
             }
@@ -287,6 +285,14 @@
             attributes: [
                 "presence"
             ]
+        ],
+        "bulb": [
+            name: "Bulb",
+            capability: "capability.bulb",
+            attributes: [
+                "switch"
+            ],
+            action: "actionOnOff"
         ],
         "button": [
             name: "Button",
@@ -357,6 +363,13 @@
                 "energy"
             ]
         ],
+        "estimatedTimeOfArrival": [
+            name: "Estimated Time of Arrival",
+            capability: "capability.estimatedTimeOfArrival",
+            attributes: [
+                "eta"
+            ]
+        ],
         "garageDoor": [
             name: "Garage Door Control",
             capability: "capability.garageDoorControl",
@@ -379,6 +392,14 @@
                 "level"
             ],
             action: "actionLevel"
+        ],
+        "light": [
+            name: "Light",
+            capability: "capability.light",
+            attributes: [
+                "switch"
+            ],
+            action: "actionOnOff"
         ],
         "lock": [
             name: "Lock",
@@ -430,6 +451,13 @@
                 "power"
             ]
         ],
+        "powerSource": [
+            name: "Power Source",
+            capability: "capability.powerSource",
+            attributes: [
+                "powerSource"
+            ]
+        ],
         "presenceSensor": [
             name: "Presence Sensor",
             capability: "capability.presenceSensor",
@@ -437,7 +465,7 @@
                 "presence"
             ]
         ],
-        "humiditySensors": [
+        "relativeHumidityMeasurement": [
             name: "Relative Humidity Measurement",
             capability: "capability.relativeHumidityMeasurement",
             attributes: [
@@ -485,6 +513,14 @@
             capability: "capability.soundPressureLevel",
             attributes: [
                 "soundPressureLevel"
+            ]
+        ],
+        "stepSensor": [
+            name: "Step Sensor",
+            capability: "capability.stepSensor",
+            attributes: [
+                "steps",
+                "goal"
             ]
         ],
         "tamperAlert": [
@@ -631,14 +667,6 @@
         //     ]
         // ],
         // TODO: custom
-        // "stepSensor": [
-        //     name: "Step Sensor",
-        //     capability: "capability.stepSensor",
-        //     attributes: [
-        //         "steps",
-        //         "goal"
-        //     ]
-        // ],
         // "threeAxis": [
         //     name: "Three Axis",
         //     capability: "capability.threeAxis",
@@ -665,7 +693,7 @@
         }
     }
 
-    def actionColor(device, attribute, value) {
+    def actionColor(device, attribute, data) {
         switch (attribute) {
             case "hue":
                 device.setHue(value as float)
@@ -674,8 +702,7 @@
                 device.setSaturation(value as float)
             break
             case "color":
-                def values = value.split(',')
-                def colormap = ["hue": values[0] as float, "saturation": values[1] as float]
+                def colormap = ["hue": data[0] as float, "saturation": data[1] as float]
                 device.setColor(colormap)
             break
         }
