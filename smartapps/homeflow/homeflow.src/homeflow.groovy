@@ -32,8 +32,8 @@
     preferences {
         page(name: "deviceSelectionPage", title: "Device Selection", nextPage: "authorizationPage", uninstall: true) {
             section("Control these devices...") {
-                input "Actuator", "capability.actuator", multiple: true, title: "Which actuators", required: false
-                input "Sensor", "capability.sensor", multiple: true, title: "Which sensors", required: false
+                input "Actuator", "capability.actuator", multiple: true, title: "Which actuators (duplicates OK)", required: false
+                input "Sensor", "capability.sensor", multiple: true, title: "Which sensors (duplicates OK)", required: false
             }
 
             section ("Input") {
