@@ -3,7 +3,7 @@ import groovy.json.*
 
 /**
 *
-*  Homeflow 1.0.0
+*  Homeflow 1.0.1
 *
 *  Copyright 2017 Homeflow
 *
@@ -20,9 +20,10 @@ import groovy.json.*
 *
 */
 
-public static String version() { return "v1.0.0" }
+public static String version() { return "v1.0.1" }
 
 /*
+ *	08/16/2017: v1.0.1 – ALPHA – Fixed issue with setColor types
  *	08/15/2017: v1.0.0 – ALPHA – Initial release
  */
 
@@ -691,13 +692,15 @@ public static String version() { return "v1.0.0" }
     def actionColor(device, attribute, data) {
         switch (attribute) {
             case "hue":
-                device.setHue(value as float)
+                device.setHue(data as int)
             break
             case "saturation":
-                device.setSaturation(value as float)
+                device.setSaturation(data as int)
             break
             case "color":
-                def colormap = ["hue": data[0] as float, "saturation": data[1] as float]
+                def colormap = [:]
+                colormap.hue = data[0] as int
+                colormap.saturation = data[1] as int
                 device.setColor(colormap)
             break
         }
