@@ -3,7 +3,7 @@ import groovy.json.*
 
 /**
 *
-*  Homeflow 1.0.1
+*  Homeflow 1.0.2
 *
 *  Copyright 2017 Homeflow
 *
@@ -23,6 +23,7 @@ import groovy.json.*
 public static String version() { return "v1.0.1" }
 
 /*
+ *  08/16/2017: v1.0.2 – ALPHA – Fixed issue with color subscribe events
  *	08/16/2017: v1.0.1 – ALPHA – Fixed issue with setColor types
  *	08/15/2017: v1.0.0 – ALPHA – Initial release
  */
@@ -47,7 +48,7 @@ public static String version() { return "v1.0.1" }
                 input "Sensor", "capability.sensor", multiple: true, title: "Which sensors (duplicates OK)", required: false
             }
         }
-
+        
         page(name: "authorizationPage", title: "Connect your SmartThings account", install: true, uninstall: true)
     }
 
@@ -122,6 +123,15 @@ public static String version() { return "v1.0.1" }
             subscribe(Actuator, attribute, eventHandler)
             subscribe(Sensor, attribute, eventHandler)
         }
+
+        // fallback subscribes
+        subscribe(Actuator, "color", eventHandler)
+        subscribe(Actuator, "hue", eventHandler)
+        subscribe(Actuator, "saturation", eventHandler)
+
+        subscribe(Sensor, "color", eventHandler)
+        subscribe(Sensor, "hue", eventHandler)
+        subscribe(Sensor, "saturation", eventHandler)
     }
 
     def getFormattedDevices() {
@@ -178,6 +188,7 @@ public static String version() { return "v1.0.1" }
         return device
     }
 
+    // handles device state changes
     def eventHandler(event) {
         log.debug "eventHandler: event occurred ${event.name} – ${event.value}"
         def devices = getFormattedDevices()
@@ -197,6 +208,7 @@ public static String version() { return "v1.0.1" }
         render data: devicesJSON, status: 200
     }
 
+    // update from homeflow API 
     def updateDevice() {
         def deviceId = params.deviceId
         def capability = request.JSON?.capability
