@@ -3,7 +3,7 @@ import groovy.json.*
 
 /**
 *
-*  Homeflow 1.0.3
+*  Homeflow 1.0.4
 *
 *  Copyright 2017 Homeflow
 *
@@ -20,9 +20,10 @@ import groovy.json.*
 *
 */
 
-@Field String version = "1.0.3"
+@Field String version = "1.0.4"
 
 /*
+ *  08/27/2017: v1.0.4 – ALPHA – Fixed issue with attribute subscription timeout 
  *  08/16/2017: v1.0.3 – ALPHA – Fixed issue with device selection, disconnect, and added version support
  *  08/16/2017: v1.0.2 – ALPHA – Fixed issue with color subscribe events
  *	08/16/2017: v1.0.1 – ALPHA – Fixed issue with setColor types
@@ -110,33 +111,71 @@ def subscribeAll() {
     log.debug("Subscribing to devices...")
     log.debug "hubId: ${location.hubs[0].id}"
 
-    def attributes = []
-
+    def capabilities = []
+    // gets list of capabilities from devices
     settings.each { key, devicesInInput ->
         devicesInInput.each { device ->
-            device.supportedAttributes.each { attribute ->
-                if (!attributes.contains(attribute.getName())) {
-                    attributes.push(attribute.getName())
+            def deviceCapabilities = device.capabilities
+            deviceCapabilities.each { capability -> 
+                def formattedCapabilityName = toCamelCase(capability.name)
+                // removes duplicate capabilities 
+                if (!capabilities.contains(formattedCapabilityName)) {
+                    capabilities.push(formattedCapabilityName)
                 }
             }
         }
     }
 
-    log.debug "attributes: $attributes"
-    
-    attributes.each { attribute ->
-        subscribe(Actuator, attribute, eventHandler)
-        subscribe(Sensor, attribute, eventHandler)
+    def attributes = []
+    // adds attributes from capabilities 
+    capabilities.each { capability -> 
+        // protects against unsupported capabilities
+        if (CAPABILITY_MAP[capability]) {
+            def supportedAttributes = CAPABILITY_MAP[capability].attributes
+            supportedAttributes.each { attribute ->
+                if (!attributes.contains(attribute)) {
+                    def attributeData = [:]
+                    attributeData.name = attribute
+                    attributeData.subscribed = false
+                    attributes.push(attributeData)
+                }
+            }
+        }
     }
 
-    // fallback subscribes
-    subscribe(Actuator, "color", eventHandler)
-    subscribe(Actuator, "hue", eventHandler)
-    subscribe(Actuator, "saturation", eventHandler)
+    log.debug("subscribeAll: attributes – ${attributes}")
 
-    subscribe(Sensor, "color", eventHandler)
-    subscribe(Sensor, "hue", eventHandler)
-    subscribe(Sensor, "saturation", eventHandler)
+    // seeds attributes
+    state.attributes = attributes
+    batchSubscribe()
+}
+
+def batchSubscribe() {
+    def timeStart = now()
+    def attributes = state.attributes
+    def batchTimeLimit = 5000
+    
+    for (def i = 0; i < attributes.size(); i++) {
+        def attribute = attributes[i]
+
+        if (!attribute.subscribed) {
+            def timePassed = now() - timeStart
+
+            // break before timeout error
+            if (timePassed >= batchTimeLimit) {
+                state.attributes = attributes
+                runIn(2, batchSubscribe)
+                break
+            }
+
+            log.debug "batchSubscribe: time passed – ${timePassed}"
+            log.debug "batchSubscribe: attributes – ${attributes}"
+
+            subscribe(Actuator, attribute.name, eventHandler)
+            subscribe(Sensor, attribute.name, eventHandler)
+            attribute.subscribed = true
+        }
+    }
 }
 
 def getVersion() {
