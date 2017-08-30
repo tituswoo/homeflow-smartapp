@@ -3,7 +3,7 @@ import groovy.json.*
 
 /**
 *
-*  Homeflow 1.0.4
+*  Homeflow 1.0.5
 *
 *  Copyright 2017 Homeflow
 *
@@ -20,9 +20,10 @@ import groovy.json.*
 *
 */
 
-@Field String version = "1.0.4"
+@Field String version = "1.0.5"
 
 /*
+ *  08/29/2017: v1.0.5 – ALPHA – Added SSL (https) support
  *  08/27/2017: v1.0.4 – ALPHA – Fixed issue with attribute subscription timeout 
  *  08/16/2017: v1.0.3 – ALPHA – Fixed issue with device selection, disconnect, and added version support
  *  08/16/2017: v1.0.2 – ALPHA – Fixed issue with color subscribe events
@@ -41,7 +42,7 @@ definition(
     iconX3Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png"
 )
 
-@Field String httpEndpoint = "http://homeflow.io:3001"
+@Field String httpEndpoint = "https://homeflow.io"
 
 preferences {
     page(name: "deviceSelectionPage", title: "Device Selection", nextPage: "authorizationPage", uninstall: true) {
